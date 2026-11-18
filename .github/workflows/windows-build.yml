@@ -1,0 +1,56 @@
+name: Windows x64 build
+
+on:
+  push:
+    branches: [main, master]
+    tags: ["v*"]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -A x64 -DUMBM_BUILD_TESTS=ON
+
+      - name: Build Release
+        run: cmake --build build --config Release --parallel
+
+      - name: Test
+        run: ctest --test-dir build -C Release --output-on-failure
+
+      - name: Package portable application
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $exe = 'build/Release/UniversalMouseBatteryMonitor.exe'
+          if (!(Test-Path $exe)) { throw "Executable not found: $exe" }
+          New-Item -ItemType Directory -Force -Path 'dist/UniversalMouseBatteryMonitor' | Out-Null
+          Copy-Item $exe 'dist/UniversalMouseBatteryMonitor/'
+          Copy-Item README.md 'dist/UniversalMouseBatteryMonitor/'
+          Copy-Item LICENSE 'dist/UniversalMouseBatteryMonitor/'
+          Compress-Archive -Path 'dist/UniversalMouseBatteryMonitor/*' -DestinationPath 'UniversalMouseBatteryMonitor-win-x64.zip' -Force
+
+      - name: Upload ZIP artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniversalMouseBatteryMonitor-win-x64
+          path: UniversalMouseBatteryMonitor-win-x64.zip
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: UniversalMouseBatteryMonitor-exe
+          path: build/Release/UniversalMouseBatteryMonitor.exe
+          if-no-files-found: error
+          retention-days: 30
