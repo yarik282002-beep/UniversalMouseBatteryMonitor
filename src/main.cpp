@@ -12,7 +12,6 @@
 
 #pragma comment(lib, "setupapi.lib")
 #pragma comment(lib, "hid.lib")
-#pragma comment(lib, "hidparse.lib")
 
 namespace {
 constexpr UINT WM_TRAY = WM_APP + 1;
@@ -54,20 +53,12 @@ void ScanDevices() {
 
         HIDD_ATTRIBUTES attr{sizeof(attr)};
         if (HidD_GetAttributes(h, &attr)) {
-            PHIDP_PREPARSED_DATA pp = nullptr;
-            if (HidD_GetPreparsedData(h, &pp)) {
-                HIDP_CAPS caps{};
-                if (HidP_GetCaps(pp, &caps) == HIDP_STATUS_SUCCESS &&
-                    caps.UsagePage == 0x01 && caps.Usage == 0x02) {
-                    auto maker = ReadHidString(h, true);
-                    auto product = ReadHidString(h, false);
-                    std::wstring line = product.empty() ? L"HID mouse" : product;
-                    if (!maker.empty()) line = maker + L" " + line;
-                    line += L" — заряд: недоступен (стандартный отчёт батареи не прочитан)";
-                    g_devices.push_back(std::move(line));
-                }
-                HidD_FreePreparsedData(pp);
-            }
+            auto maker = ReadHidString(h, true);
+            auto product = ReadHidString(h, false);
+            std::wstring line = product.empty() ? L"HID-устройство" : product;
+            if (!maker.empty()) line = maker + L" " + line;
+            line += L" — батарея: протокол ещё не определён";
+            g_devices.push_back(std::move(line));
         }
         CloseHandle(h);
     }
@@ -78,7 +69,7 @@ void ShowStatus() {
     ScanDevices();
     std::wstring text = L"Universal Mouse Battery Monitor\n\n";
     if (g_devices.empty()) {
-        text += L"Мышиные HID-устройства не найдены.";
+        text += L"HID-устройства не найдены.";
     } else {
         for (const auto& item : g_devices) text += L"• " + item + L"\n";
     }
