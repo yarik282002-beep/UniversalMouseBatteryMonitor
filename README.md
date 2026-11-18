@@ -1,3 +1,40 @@
 # Universal Mouse Battery Monitor
 
-C++20 Windows tray application for reporting battery levels exposed by supported HID devices. See source and build workflow.
+Небольшая фоновая утилита для Windows 10/11 x64 на C++20. Программа перечисляет HID-коллекции мышей и пытается прочитать стандартные HID-поля заряда батареи. Значок в системном трее выполнен в стиле монохромных значков Windows: прозрачный фон, контур аккумулятора и заполнение по реальному уровню.
+
+## Возможности MVP
+
+- Иконка аккумулятора в области уведомлений Windows.
+- Автоматическое обновление списка примерно каждые 30 секунд.
+- Список найденных HID-мышей, производитель, модель и доступный уровень заряда.
+- Поиск стандартных HID Battery Strength и Battery System State of Charge.
+- Отображение «недоступен», когда устройство не отдаёт корректное значение.
+- Поддержка нескольких HID-коллекций мышей.
+- Портативная сборка без установщика и без прав администратора для обычного перечисления устройств.
+- MIT License.
+
+## Ограничения
+
+USB — это транспорт, а не единый протокол батареи. Приложение не может гарантировать получение заряда от каждой мыши или USB-приёмника. Некоторые модели предоставляют заряд только через закрытые протоколы производителя. В этой версии ещё нет BLE GATT-клиента и специальных протокольных адаптеров Logitech/Razer/SteelSeries/Corsair. Никакие проценты не подставляются, если данные не получены.
+
+## Скачать готовую сборку
+
+После каждого push в ветку `main` GitHub Actions собирает Windows x64 Release, запускает тесты и публикует два артефакта:
+- `UniversalMouseBatteryMonitor-win-x64` — ZIP с EXE и документацией.
+- `UniversalMouseBatteryMonitor-exe` — отдельный EXE.
+
+Открой вкладку **Actions**, выбери последний успешный запуск и скачай артефакт внизу страницы.
+
+## Сборка вручную (не требуется для скачивания артефакта)
+
+Нужны Visual Studio 2022 Build Tools / Desktop development with C++, Windows SDK и CMake 3.20+.
+
+```powershell
+cmake -S . -B build -A x64 -DUMBM_BUILD_TESTS=ON
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
+```
+
+## License
+
+MIT. Смотри файл LICENSE.
