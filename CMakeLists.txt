@@ -12,7 +12,7 @@ if(WIN32)
         src/main.cpp
     )
     target_link_libraries(UniversalMouseBatteryMonitor PRIVATE
-        setupapi hid hidparse shell32 user32 gdi32 advapi32
+        setupapi hid shell32 user32 gdi32 advapi32
     )
     target_compile_definitions(UniversalMouseBatteryMonitor PRIVATE
         UNICODE _UNICODE WIN32_LEAN_AND_MEAN NOMINMAX
